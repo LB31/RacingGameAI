@@ -2,7 +2,10 @@ package s0553363;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Leonid Barsht
@@ -24,41 +27,148 @@ public class WeightedGraph {
 	}
 
 	public WeightedGraph() {
-
+		// openList.put(0, 25f);
+		// openList.put(1, 5f);
+		// openList.put(2, 4f);
+		// openList.put(3, 8f);
+		// temp = (getKeyByValue(4f));
+		// printVertices();
 	}
 
-	/** list containing nodes not visited but adjacent to visited nodes. */
-	private List<Integer> openList;
-	/** list containing nodes already visited/taken care of. */
-	private List<Integer> closedList;
-	/** done finding path? */
-	private boolean done = false;
+	// A * Algorithm Fields
+	private HashMap<Integer, Float> openList = new HashMap<Integer, Float>();
+	private List<Integer> closedList = new ArrayList<Integer>();
+	private HashMap<Integer, Integer> cameFrom = new HashMap<Integer, Integer>();
+	private HashMap<Integer, Float> fScore = new HashMap<Integer, Float>() {
+		@Override
+		public Float get(Object key) {
+			if (!containsKey(key))
+				return Float.MAX_VALUE;
+			return super.get(key);
+		}
+	};
+	private HashMap<Integer, Float> gScore = new HashMap<Integer, Float>() {
+		@Override
+		public Float get(Object key) {
+			if (!containsKey(key))
+				return Float.MAX_VALUE;
+			return super.get(key);
+		}
+	};
 
 	// A * Algorithm
-	// public ArrayList<int> aStar(int start, int end){
-	// openList.add(start);
-	// while(true){
-	// float current =
-	// }
-	//
-	//
-	// return null;
-	// }
+	public ArrayList<Vector2D> aStar(int start, int end) {
+		openList = new HashMap<Integer, Float>();
+		closedList = new ArrayList<Integer>();
+		cameFrom = new HashMap<Integer, Integer>();
+		fScore = new HashMap<Integer, Float>() {
+			@Override
+			public Float get(Object key) {
+				if (!containsKey(key))
+					return Float.MAX_VALUE;
+				return super.get(key);
+			}
+		};
+		gScore = new HashMap<Integer, Float>() {
+			@Override
+			public Float get(Object key) {
+				if (!containsKey(key))
+					return Float.MAX_VALUE;
+				return super.get(key);
+			}
+		};
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		gScore.put(start, 0f);
+		fScore.put(start, calcHCost(start, end));
+		openList.put(start, calcFCost(start, start, end));
 
-	// Abstand vom Startpunkt
-	public float calcGCost(int currentPoint) {
-		ArrayList<Integer> neighbours = getNeighbours(currentPoint);
-		float gBack;
-		for (int i = 0; i < neighbours.size(); i++) {
+		while (openList.size() > 0) {
+			int current = getKeyByValue(Collections.min(openList.values()));
+			if (current == end) {
+				return reconstructPath(cameFrom, current);
+			}
+			openList.remove(current);
+			closedList.add(current);
+
+			for (Integer neighbour : getNeighbours(current)) {
+				if (closedList.contains(neighbour)) {
+					continue;
+				}
+
+				if (!openList.containsKey(neighbour)) {
+					openList.put(neighbour, calcFCost(neighbour, start, end));
+				}
+
+				float tempGScore = gScore.get(current) + calcDistance(vertices.get(current), vertices.get(neighbour));
+				if (tempGScore >= gScore.get(neighbour)) {
+					continue;
+				}
+				cameFrom.put(neighbour, current);
+				gScore.put(neighbour, tempGScore);
+				fScore.put(neighbour, gScore.get(neighbour) + calcHCost(neighbour, end));
+
+			}
 
 		}
-		return 0;
+		return null;
+	}
+
+	public ArrayList<Vector2D> reconstructPath(HashMap<Integer, Integer> cameFrom, int current) {
+		ArrayList<Vector2D> totalPath = new ArrayList<>();
+		totalPath.add(new Vector2D(vertices.get(current).getX(), vertices.get(current).getY()));
+
+		while (cameFrom.keySet().contains(current)) {
+			current = cameFrom.get(current);
+			// totalPath.add(current);
+			totalPath.add(new Vector2D(vertices.get(current).getX(), vertices.get(current).getY()));
+
+		}
+
+		return totalPath;
+	}
+
+	public int getKeyByValue(float value) {
+		int backKey = 0;
+		for (int key : openList.keySet()) {
+
+			if (openList.get(key) == value) {
+				backKey = key;
+			}
+
+		}
+
+		return backKey;
+	}
+
+	// Abstand vom Startpunkt
+	public float calcGCost(int currentPoint, int startPoint) {
+		// ArrayList<Integer> neighbours = getNeighbours(currentPoint);
+		// float gBack = Integer.MAX_VALUE;
+
+		float weight = adjacencyMatrix[startPoint][currentPoint];
+
+		return weight;
 	}
 
 	// Abstand vom Ziel
-	public float calcHCost(int destinationPoint) {
+	public float calcHCost(int currentPoint, int destinationPoint) {
+		float distanceTarget = calcDistance(vertices.get(currentPoint), vertices.get(destinationPoint));
+		return distanceTarget;
+	}
 
-		return 0;
+	public float calcFCost(int currentPoint, int startPoint, int destinationPoint) {
+		return calcGCost(currentPoint, startPoint) + calcHCost(currentPoint, destinationPoint);
+
 	}
 
 	public ArrayList<Integer> getNeighbours(int root) {
@@ -229,10 +339,16 @@ public class WeightedGraph {
 	public void clearCarTargetEdges() {
 
 		for (int i = 0; i < adjacencyMatrix.length; i++) {
-			adjacencyMatrix[i][vertices.size() - 1] = -1f;
-			adjacencyMatrix[vertices.size() - 1][i] = -1f;
-			adjacencyMatrix[i][vertices.size() - 2] = -1f;
-			adjacencyMatrix[vertices.size() - 2][i] = -1f;
+//			 adjacencyMatrix[i][vertices.size() - 1] = -1f;
+//			 adjacencyMatrix[vertices.size() - 1][i] = -1f;
+//			 adjacencyMatrix[i][vertices.size() - 2] = -1f;
+//			 adjacencyMatrix[vertices.size() - 2][i] = -1f;
+//			
+			for (float[] floatArray : adjacencyMatrix) {
+				Arrays.fill(floatArray, -1f);
+			}
+			
+
 		}
 
 	}
