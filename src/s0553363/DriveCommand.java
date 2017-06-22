@@ -178,7 +178,7 @@ public class DriveCommand {
 				distanceRight = getObstacleDistance(vectorRight, obstacleX, obstacleY);
 
 				// Radius vom Hindernis
-				if (distanceObstacle < 20) {
+				if (distanceObstacle < 10) {
 
 					if (distanceLeft > distanceRight) {
 						acceleration = 1;

@@ -317,7 +317,7 @@ public class Bobama extends AI {
 	public boolean isEnabledForRacing() {
 		// TODO Auto-generated method stub
 //		return super.isEnabledForRacing();
-		return true;
+		return false;
 	}
 
 }

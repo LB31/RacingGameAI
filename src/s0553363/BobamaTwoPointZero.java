@@ -11,6 +11,7 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.Point;
 
 
+
 import lenz.htw.ai4g.ai.AI;
 import lenz.htw.ai4g.ai.DriverAction;
 import lenz.htw.ai4g.ai.Info;
@@ -20,29 +21,24 @@ public class BobamaTwoPointZero extends AI {
 	private ArrayList<ArrayList<Integer>> xpoints = new ArrayList<>();
 	private ArrayList<ArrayList<Integer>> ypoints = new ArrayList<>();
 	private boolean trackInitReady = false;
-
+	private int frames;
 	private float targetX = 0;
 	private float targetY = 0;
 	private float carX;
 	private float carY;
+	private float oldX;
 	private DriveCommand driveCommand;
-
+	private DriveCommandFaster driveCommandFaster;
+	private int obstacleLength = obstacles.length;
 	ArrayList<Vector2D> readyPath = new ArrayList<>();
+	ArrayList<Vector2D> readyPathBackUp = new ArrayList<>();
 
 	private WeightedGraph graph = new WeightedGraph();
 
 	public BobamaTwoPointZero(Info info) {
 		super(info);
 
-		// Add the obstacles coordinates to ArrayLists for a better handling
-		for (int i = 0; i < obstacles.length; i++) {
-			xpoints.add(new ArrayList<Integer>());
-			ypoints.add(new ArrayList<Integer>());
-			for (int j = 0; j < obstacles[i].xpoints.length; j++) {
-				xpoints.get(i).add(obstacles[i].xpoints[j]);
-				ypoints.get(i).add(obstacles[i].ypoints[j]);
-			}
-		}
+		fillObstacleArrays();
 
 		createGraph();
 		findRoutes();
@@ -50,7 +46,20 @@ public class BobamaTwoPointZero extends AI {
 		graph.addVertex((float) info.getCurrentCheckpoint().getX(), (float) info.getCurrentCheckpoint().getY());
 		trackInitReady = true;
 		driveCommand = new DriveCommand(info);
+		driveCommandFaster = new DriveCommandFaster(info);
 
+	}
+
+	public void fillObstacleArrays() {
+		// Add the obstacles coordinates to ArrayLists for a better handling
+		for (int i = 0; i < obstacleLength; i++) {
+			xpoints.add(new ArrayList<Integer>());
+			ypoints.add(new ArrayList<Integer>());
+			for (int j = 0; j < obstacles[i].xpoints.length; j++) {
+				xpoints.get(i).add(obstacles[i].xpoints[j]);
+				ypoints.get(i).add(obstacles[i].ypoints[j]);
+			}
+		}
 	}
 
 	@Override
@@ -60,60 +69,80 @@ public class BobamaTwoPointZero extends AI {
 		carY = info.getY();
 		// If the checkpoint has changed
 		if (info.getCurrentCheckpoint().getX() != targetX && info.getCurrentCheckpoint().getY() != targetY) {
-			targetX = (float) info.getCurrentCheckpoint().getX();
-			targetY = (float) info.getCurrentCheckpoint().getY();
-			graph.removeVertex(graph.getVertices().size() - 1);
-			graph.removeVertex(graph.getVertices().size() - 1);
-			graph.clearCarTargetEdges();
-			graph.addVertex(carX, carY);
-			graph.addVertex(targetX, targetY);
-			findRoutes();
-			graph.printAdjacencyMatrix();
-			readyPath = graph.aStar(graph.getVertices().size() - 2, graph.getVertices().size() - 1);
+			starCaller();
 			// Letztes Element der Route (die eigene Position) entfernen
 			// readyPath.remove(readyPath.size()-1);
 			// readyPath.add(graph.getVertices().get(graph.getVertices().size()-1));
-			if(readyPath.size() > 0)
+			if(readyPath != null){
 			System.out.println(readyPath.size() + " Path size");
 			for (int i = 0; i < readyPath.size(); i++) {
 				System.out.println(readyPath.get(i).getX() + " X Path part " + i);
 				System.out.println(readyPath.get(i).getY() + " Y Path part " + i);
-			}
+			}}
 
 		}
 
 	
-
+		if(wasResetAfterCollision) readyPath = readyPathBackUp;
 		float routeX;
 		float routeY;
-		if (readyPath.size() > 0) {
+		routeX = targetX;
+		routeY = targetY;
+		
+		if(readyPath != null){
+			if(readyPath.size() > 0){
 			routeX = readyPath.get(readyPath.size() - 1).getX();
 			routeY = readyPath.get(readyPath.size() - 1).getY();
-		} else {
-			routeX = targetX;
-			routeY = targetY;
+			}
 		}
+		
+//		System.out.println("Ich will zu X " + routeX);
 
 		int toleranceRoute = 10;
 		if ((carX >= (routeX - toleranceRoute) && carX <= (routeX + toleranceRoute))
 				&& (carY >= (routeY - toleranceRoute) && carY <= (routeY + toleranceRoute))) {
+			if(readyPath != null){
 			if (readyPath.size() > 0) {
 				readyPath.remove(readyPath.size() - 1);
 				System.out.println("Bam removed");
 
-			}
+			}}
 		}
 
+		if(oldX-10 < carX && oldX+10 > carX){
+			frames++;
+		}
+	
+		
 //		System.out.println("I will drive to X:" + routeX + " and Y:" + routeY);
-		// Tills Car
-//		DriveCommandFaster driveCommand = new DriveCommandFaster(info);
-//		float[] commands = driveCommand.drive(carX, carY, routeX, routeY);
-//		return new DriverAction(commands[0], commands[1]);
+		// Till's Car	
+		float[] commands = driveCommandFaster.drive(carX, carY, routeX, routeY);
+	
+		if(frames > 150){
+			commands[0] = -1;
+			System.out.println("back back");
+		}
+		
+		return new DriverAction(commands[0], commands[1]);
 
-		 // Leos Car
-		 float[] commands = driveCommand.seek(carX, carY, routeX, routeY);
-		 return new DriverAction(commands[0], commands[1]);
+//		 // Leo's Car
+//		 float[] commands = driveCommand.seek(carX, carY, routeX, routeY);
+//		 return new DriverAction(commands[0], commands[1]);
 
+	}
+
+	public void starCaller() {
+		targetX = (float) info.getCurrentCheckpoint().getX();
+		targetY = (float) info.getCurrentCheckpoint().getY();
+		graph.removeVertex(graph.getVertices().size() - 1);
+		graph.removeVertex(graph.getVertices().size() - 1);
+		graph.clearCarTargetEdges();
+		graph.addVertex(carX, carY);
+		graph.addVertex(targetX, targetY);
+		findRoutes();
+		graph.printAdjacencyMatrix();
+		readyPath = graph.aStar(graph.getVertices().size() - 2, graph.getVertices().size() - 1);
+		readyPathBackUp = graph.aStar(graph.getVertices().size() - 2, graph.getVertices().size() - 1);
 	}
 
 	@Override
@@ -150,22 +179,23 @@ public class BobamaTwoPointZero extends AI {
 		}
 
 		// Draw Route
-//		int matrixLengthRoute = readyPath.size();
-//		for (int i = 0; i < matrixLengthRoute - 1; i++) {
-//
-//			float pathX = readyPath.get(i).getX();
-//			float pathY = readyPath.get(i).getY();
-//			float pathXNext = readyPath.get(i + 1).getX();
-//			float pathYNext = readyPath.get(i + 1).getY();
-//
-//			GL11.glBegin(GL11.GL_LINES);
-//			GL11.glColor3d(0, 0, 1);
-//			GL11.glVertex2d(pathX, pathY);
-//			GL11.glVertex2d(pathXNext, pathYNext);
-//			GL11.glEnd();
-//
-//		}
+		if(readyPath != null){
+		int matrixLengthRoute = readyPath.size();
+		for (int i = 0; i < matrixLengthRoute - 1; i++) {
 
+			float pathX = readyPath.get(i).getX();
+			float pathY = readyPath.get(i).getY();
+			float pathXNext = readyPath.get(i + 1).getX();
+			float pathYNext = readyPath.get(i + 1).getY();
+
+			GL11.glBegin(GL11.GL_LINES);
+			GL11.glColor3d(0, 0, 1);
+			GL11.glVertex2d(pathX, pathY);
+			GL11.glVertex2d(pathXNext, pathYNext);
+			GL11.glEnd();
+
+		}
+		}
 	}
 
 	@Override
@@ -303,9 +333,9 @@ public class BobamaTwoPointZero extends AI {
 		Polygon linePolygon = new Polygon();
 
 		linePolygon.addPoint((int) (startPunkt.getX()), (int) (startPunkt.getY()));
-		linePolygon.addPoint((int) (startPunkt.getX() + 1), (int) (startPunkt.getY()));
+		linePolygon.addPoint((int) (startPunkt.getX() + 2), (int) (startPunkt.getY()));
 		linePolygon.addPoint((int) (endPunkt.getX()), (int) (endPunkt.getY()));
-		linePolygon.addPoint((int) (endPunkt.getX()), (int) (endPunkt.getY() + 1));
+		linePolygon.addPoint((int) (endPunkt.getX()), (int) (endPunkt.getY() + 2));
 
 		return linePolygon;
 	}
@@ -329,10 +359,10 @@ public class BobamaTwoPointZero extends AI {
 			} else {
 				jCompare = i + 1;
 			}
-			for (int j = i + 1; j < buffer.size(); j++) {
+			for (int j = i+1; j < buffer.size(); j++) {
 				tempPoly = createPolygon(buffer.get(i), buffer.get(j));
 				boolean freeRoad = true;
-				for (int k = 0; k < obstacles.length; k++) {
+				for (int k = 0; k < obstacleLength; k++) {
 					boolean crash = testIntersection(tempPoly, obstacles[k]);
 					if (crash) {
 						freeRoad = false;
