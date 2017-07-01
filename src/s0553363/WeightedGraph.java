@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Leonid Barsht
@@ -77,20 +76,10 @@ public class WeightedGraph {
 				return super.get(key);
 			}
 		};
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+
 		gScore.put(start, 0f);
-		fScore.put(start, calcHCost(start, end));
-		openList.put(start, calcFCost(start, start, end));
+		fScore.put(start, calcHCost(start, end)); // TODO
+		openList.put(start, calcFCost(start, start, end)); // TODO
 
 		while (openList.size() > 0) {
 			int current = getKeyByValue(Collections.min(openList.values()));
@@ -152,10 +141,9 @@ public class WeightedGraph {
 
 	// Abstand vom Startpunkt
 	public float calcGCost(int currentPoint, int startPoint) {
-		// ArrayList<Integer> neighbours = getNeighbours(currentPoint);
-		// float gBack = Integer.MAX_VALUE;
 
 		float weight = adjacencyMatrix[startPoint][currentPoint];
+		
 
 		return weight;
 	}
@@ -343,11 +331,10 @@ public class WeightedGraph {
 //			 adjacencyMatrix[vertices.size() - 1][i] = -1f;
 //			 adjacencyMatrix[i][vertices.size() - 2] = -1f;
 //			 adjacencyMatrix[vertices.size() - 2][i] = -1f;
-//			
+			
 			for (float[] floatArray : adjacencyMatrix) {
 				Arrays.fill(floatArray, -1f);
 			}
-			
 
 		}
 

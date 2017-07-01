@@ -22,8 +22,7 @@ public class DriveCommand {
 	private float wishSpinSpeed;
 	private float acceleration;
 	private float speed = 1;
-	
-	
+
 	private Polygon[] obstacles;
 	private int lengthFor;
 	private int seperations = 10;
@@ -36,7 +35,7 @@ public class DriveCommand {
 	public DriveCommand(Info info) {
 		this.info = info;
 		obstacles = info.getTrack().getObstacles();
-		
+
 		// Add own obsticles
 		for (int i = 0; i < obstacles.length; i++)// durch obstacles iterieren
 		{
@@ -71,18 +70,16 @@ public class DriveCommand {
 				}
 			}
 		}
-		
 
 	}
 
 	public float[] seek(float carX, float carY, float targetX, float targetY) {
-		
+
 		this.carX = carX;
 		this.carY = carY;
 		this.targetX = targetX;
 		this.targetY = targetY;
-		
-		
+
 		float[] speedAcceleration = new float[2];
 
 		carAngle = info.getOrientation();
@@ -130,8 +127,7 @@ public class DriveCommand {
 		// }
 
 		acceleration = wishSpinSpeed - info.getAngularVelocity();
-		
-		
+
 		// Ausweichen; optional
 		doAvoidingStuff();
 
@@ -150,7 +146,6 @@ public class DriveCommand {
 
 			float distanceLeft;
 			float distanceRight;
-
 
 			// Richtungsvektoren zum Auto berechnen
 			vectorMiddle = new Vector2D(25, 0);

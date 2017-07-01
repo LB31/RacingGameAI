@@ -9,17 +9,12 @@ package s0553363;
  */
 
 import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.util.Vector;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.Point;
 
 import lenz.htw.ai4g.ai.AI;
 import lenz.htw.ai4g.ai.DriverAction;
 import lenz.htw.ai4g.ai.Info;
-import lenz.htw.ai4g.track.Track;
 
 public class Bobama extends AI {
 	private float targetX;
@@ -116,16 +111,13 @@ public class Bobama extends AI {
 			wishSpinSpeed += Math.PI * 2;
 		}
 
-		
-		
-		 // Arrive
-		 if(getDistance() < 100 && delegateAlign(targetX, targetY) > 0.15){
-		 speed = -1;
-		 }
-		 else{
-			 speed = 1;
-		 }
-		
+		// Arrive
+		if (getDistance() < 100 && delegateAlign(targetX, targetY) > 0.15) {
+			speed = -1;
+		} else {
+			speed = 1;
+		}
+
 		// float abbremsRadius = 15;
 		// if(getDistance()< abbremsRadius){
 		// wishSpeed = (float) ((getDistance()*1f/10000f) *
@@ -200,9 +192,6 @@ public class Bobama extends AI {
 			}
 		}
 
-		
-		
-		
 		return new DriverAction(speed, acceleration);
 	}
 
@@ -247,7 +236,7 @@ public class Bobama extends AI {
 		return angleBetween;
 	}
 
-	 @Override
+	@Override
 	public void doDebugStuff() {
 		// TODO Auto-generated method stub
 		super.doDebugStuff();
@@ -267,39 +256,37 @@ public class Bobama extends AI {
 
 		GL11.glEnd();
 
-//		GL11.glPointSize(10);
-//		GL11.glColor3d(1, 0, 0);
-//
-//		 GL11.glBegin(GL11.GL_POINTS);
-//		
-//		 for (int i = 0; i < obstacles[2].xpoints.length; i++) {
-//		 GL11.glVertex2d(obstacles[2].xpoints[i], obstacles[2].ypoints[i]);
-//		 }
-//		
-//		 for (int i = 0; i < obstacles[2].xpoints.length; i++) {
-//		 GL11.glVertex2d(obstacles[2].xpoints[i], obstacles[2].ypoints[i]);
-//		 }
-//		
-//		 GL11.glEnd();
+		// GL11.glPointSize(10);
+		// GL11.glColor3d(1, 0, 0);
+		//
+		// GL11.glBegin(GL11.GL_POINTS);
+		//
+		// for (int i = 0; i < obstacles[2].xpoints.length; i++) {
+		// GL11.glVertex2d(obstacles[2].xpoints[i], obstacles[2].ypoints[i]);
+		// }
+		//
+		// for (int i = 0; i < obstacles[2].xpoints.length; i++) {
+		// GL11.glVertex2d(obstacles[2].xpoints[i], obstacles[2].ypoints[i]);
+		// }
+		//
+		// GL11.glEnd();
 
-//		GL11.glPointSize(20);
-//		GL11.glColor3d(1, 0, 0);
-//		
-//		 GL11.glBegin(GL11.GL_POINTS);
-//		
-//		 GL11.glVertex2d(960, 960);
-//		 GL11.glVertex2d(40, 40);
-//		 GL11.glVertex2d(40, 960);
-//		 GL11.glVertex2d(960, 40);
-//		 GL11.glVertex2d(500, 600);
-//		 GL11.glVertex2d(carX, carY);
-//		 System.out.println(carX);
-//		 System.out.println(carY);
-//		 GL11.glEnd();
-		
-		
+		// GL11.glPointSize(20);
+		// GL11.glColor3d(1, 0, 0);
+		//
+		// GL11.glBegin(GL11.GL_POINTS);
+		//
+		// GL11.glVertex2d(960, 960);
+		// GL11.glVertex2d(40, 40);
+		// GL11.glVertex2d(40, 960);
+		// GL11.glVertex2d(960, 40);
+		// GL11.glVertex2d(500, 600);
+		// GL11.glVertex2d(carX, carY);
+		// System.out.println(carX);
+		// System.out.println(carY);
+		// GL11.glEnd();
+
 	}
-	 
 
 	@Override
 	public String getName() {
@@ -316,8 +303,8 @@ public class Bobama extends AI {
 	@Override
 	public boolean isEnabledForRacing() {
 		// TODO Auto-generated method stub
-//		return super.isEnabledForRacing();
-		return false;
+		// return super.isEnabledForRacing();
+		return true;
 	}
 
 }

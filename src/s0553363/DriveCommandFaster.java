@@ -10,19 +10,16 @@ import java.awt.geom.Point2D;
 
 import org.lwjgl.opengl.GL11;
 
+public class DriveCommandFaster {
 
-public class DriveCommandFaster 
-{
-	
-	private float acceleration = 1f; //0-1
-	private float direction = 0;//1 links, -1 rechts	
-	private float seekDirection = 0;//Gewichtung für seek
+	private float acceleration = 1f; // 0-1
+	private float direction = 0;// 1 links, -1 rechts
+	private float seekDirection = 0;// Gewichtung für seek
 	private float a = 1;
 	private float fleeDirection = 0;
-	private float b = 0;//Gewichtung für flee
-	
-	
-	//Koordinaten
+	private float b = 0;// Gewichtung für flee
+
+	// Koordinaten
 	private float autoX;
 	private float autoY;
 	private float zielX;
@@ -30,9 +27,8 @@ public class DriveCommandFaster
 	private float richtungX;
 	private float richtungY;
 	private float zielAbstand;
-	
-	//Hindernisse
 
+	// Hindernisse
 
 	float kleinsterAbstand = 100;
 	float abstandZumHindernis;
@@ -42,14 +38,13 @@ public class DriveCommandFaster
 	float aktuellesHindernisY = 100;
 	float deltaWinkelHindernis = 1;
 	float hindernisAusrichtung = 1;
-	
 
-	//Winkel	
+	// Winkel
 	private float zielAusrichtung;
 	private float eigeneAusrichtung;
 	private float deltaWinkelCheckPoint;
-	
-	//Debugzeuch
+
+	// Debugzeuch
 	private int timer = 0;
 
 	private Info info;
@@ -60,11 +55,8 @@ public class DriveCommandFaster
 	private Vector2D vectorLeft;
 	private Vector2D vectorMiddle;
 	private Vector2D vectorRight;
-	
-	
-	
-	public DriveCommandFaster(Info info) 
-	{
+
+	public DriveCommandFaster(Info info) {
 		this.info = info;
 		obstacles = info.getTrack().getObstacles();
 		// Add own obsticles
@@ -101,51 +93,38 @@ public class DriveCommandFaster
 				}
 			}
 		}
-	
 
 	}
-	
-	public float[] drive(float cX, float cY, float tX, float tY) 
-	{		
-		
-		 autoX = cX;
-		 autoY = cY;
-		 zielX = tX;
-		 zielY = tY;
-		
-		
-		//Standarwerte setzen
+
+	public float[] drive(float cX, float cY, float tX, float tY) {
+
+		autoX = cX;
+		autoY = cY;
+		zielX = tX;
+		zielY = tY;
+
+		// Standarwerte setzen
 		acceleration = 1;
 		a = 1;
 		b = 0;
-		
 
-		
-		//Seekverhalten
+		// Seekverhalten
 		seekDirection = seek(zielX, zielY);
-		
 
-
-		
-		
-		//Wenn das Ziel hinter sich hinter dem Auto befindet, verringere die Geschwindigkeit.
-		if((zielAusrichtung < eigeneAusrichtung - Math.PI/2) || (zielAusrichtung > eigeneAusrichtung + Math.PI/2))
-		{
-//			System.out.println("Das Ziel befindet sich hinter mir!");
-			if((info.getVelocity().length() > 15))
-			{
+		// Wenn das Ziel hinter sich hinter dem Auto befindet, verringere die
+		// Geschwindigkeit.
+		if ((zielAusrichtung < eigeneAusrichtung - Math.PI / 2)
+				|| (zielAusrichtung > eigeneAusrichtung + Math.PI / 2)) {
+			// System.out.println("Das Ziel befindet sich hinter mir!");
+			if ((info.getVelocity().length() > 15)) {
 				acceleration = -0.25f;
-			}		
-			else
-			{
+			} else {
 				acceleration = 1;
 			}
 		}
-		
-		//Finale Richtung bestimmen.
-		direction = (a * seekDirection + b * fleeDirection) / (a+b);
-		
-		
+
+		// Finale Richtung bestimmen.
+		direction = (a * seekDirection + b * fleeDirection) / (a + b);
 
 		float[] backCar = new float[2];
 		// Ausweichen; optional
@@ -153,83 +132,70 @@ public class DriveCommandFaster
 		backCar[0] = acceleration;
 		backCar[1] = direction;
 		return backCar;
-		
-	}	
-	
-//Funktionen
-	//Seek
-	public float seek(float X, float Y)
-	{
-		//Richtungsvektor zum Checkpoint berechnen.
+
+	}
+
+	// Funktionen
+	// Seek
+	public float seek(float X, float Y) {
+		// Richtungsvektor zum Checkpoint berechnen.
 		autoX = info.getX();
 		autoY = info.getY();
 		zielX = X;
 		zielY = Y;
 		richtungX = zielX - autoX;
 		richtungY = zielY - autoY;
-		
-		
-		//Ausrichtungen berechnen
+
+		// Ausrichtungen berechnen
 		zielAusrichtung = (float) Math.atan2(richtungY, richtungX);
 		eigeneAusrichtung = info.getOrientation();
 		deltaWinkelCheckPoint = (zielAusrichtung - eigeneAusrichtung);
-		
-		//Winkelüberlauf korrigieren
-		if(deltaWinkelCheckPoint > Math.PI)
-		{
-//			System.out.println("Korrigiere Winkelüberlauf.");
+
+		// Winkelüberlauf korrigieren
+		if (deltaWinkelCheckPoint > Math.PI) {
+			// System.out.println("Korrigiere Winkelüberlauf.");
 			deltaWinkelCheckPoint = (float) (deltaWinkelCheckPoint - 2 * Math.PI);
 		}
-		if(deltaWinkelCheckPoint < - Math.PI)
-		{
-//			System.out.println("Korrigiere Winkelüberlauf.");
+		if (deltaWinkelCheckPoint < -Math.PI) {
+			// System.out.println("Korrigiere Winkelüberlauf.");
 			deltaWinkelCheckPoint = (float) (deltaWinkelCheckPoint + 2 * Math.PI);
 		}
-		
-		
-		//Abstände berechnen
-		zielAbstand =  (float) Math.sqrt(Math.pow(richtungX, 2) + Math.pow(richtungY, 2));
-		
-		//Wenn der Checkpoint innerhalb des Toleranzbereich ist, gleiche die Lenkrichtung an.
-		if(Math.abs(deltaWinkelCheckPoint) < 0.785)		
-		{
-			deltaWinkelCheckPoint = deltaWinkelCheckPoint * info.getMaxAngularAcceleration()/0.785f;
-			
-			if(Math.abs(deltaWinkelCheckPoint) < 0.33)
-			{
-				deltaWinkelCheckPoint = (float) (deltaWinkelCheckPoint * info.getMaxAngularAcceleration()/0.33);
-				//Wenn man dem Checkpoint sehr nahe ist, aber nicht direkt darauf ausgerichtet soll abgebremst werden.
-				if((zielAbstand < 125) && (Math.abs(deltaWinkelCheckPoint) > 0.2))
-				{
-//					System.out.println("Feinausrichtung!");
-					if(info.getVelocity().length() > 3f)
-					{
+
+		// Abstände berechnen
+		zielAbstand = (float) Math.sqrt(Math.pow(richtungX, 2) + Math.pow(richtungY, 2));
+
+		// Wenn der Checkpoint innerhalb des Toleranzbereich ist, gleiche die
+		// Lenkrichtung an.
+		if (Math.abs(deltaWinkelCheckPoint) < 0.785) {
+			deltaWinkelCheckPoint = deltaWinkelCheckPoint * info.getMaxAngularAcceleration() / 0.785f;
+
+			if (Math.abs(deltaWinkelCheckPoint) < 0.33) {
+				deltaWinkelCheckPoint = (float) (deltaWinkelCheckPoint * info.getMaxAngularAcceleration() / 0.33);
+				// Wenn man dem Checkpoint sehr nahe ist, aber nicht direkt
+				// darauf ausgerichtet soll abgebremst werden.
+				if ((zielAbstand < 125) && (Math.abs(deltaWinkelCheckPoint) > 0.2)) {
+					// System.out.println("Feinausrichtung!");
+					if (info.getVelocity().length() > 3f) {
 						acceleration = -0.25f;
-					}
-					else
-					{
+					} else {
 						acceleration = 1;
 					}
 				}
 			}
-		}
-		else 
-		{
-			//Entscheiden ob nach links oder rechts gelenkt wird.
-			if(zielAusrichtung > eigeneAusrichtung)
-			{
+		} else {
+			// Entscheiden ob nach links oder rechts gelenkt wird.
+			if (zielAusrichtung > eigeneAusrichtung) {
 				deltaWinkelCheckPoint = 1;
 			}
-			if(zielAusrichtung < eigeneAusrichtung)
-			{
+			if (zielAusrichtung < eigeneAusrichtung) {
 				deltaWinkelCheckPoint = -1;
-			}			
+			}
 		}
-		
-		//Finale Lenkrichtung
+
+		// Finale Lenkrichtung
 		return (float) ((deltaWinkelCheckPoint - info.getAngularVelocity()));
 	}
-	
+
 	public float getObstacleDistance(Vector2D vector, float obstacleX, float obstacleY) {
 		float distanceObstacle;
 		float distanceX;
@@ -240,7 +206,7 @@ public class DriveCommandFaster
 		distanceObstacle = (float) Math.sqrt(Math.pow(distanceX, 2) + Math.pow(distanceY, 2));
 		return distanceObstacle;
 	}
-	
+
 	public void doAvoidingStuff() {
 		for (int i = 0; i < obstacles.length; i++)// durch obstacles iterieren
 		{
@@ -250,7 +216,6 @@ public class DriveCommandFaster
 
 			float distanceLeft;
 			float distanceRight;
-
 
 			// Richtungsvektoren zum Auto berechnen
 			vectorMiddle = new Vector2D(25, 0);
@@ -282,10 +247,10 @@ public class DriveCommandFaster
 
 					if (distanceLeft > distanceRight) {
 						direction = 1;
-					
+
 					} else {
 						direction = -1;
-		
+
 					}
 
 				}
@@ -293,7 +258,5 @@ public class DriveCommandFaster
 			}
 		}
 	}
-	
-	
 
 }
